@@ -1,0 +1,63 @@
+use std::fmt::{Display, Formatter, Result as FmtResult};
+// TODO: move the below source code minus trailing macro into *.in file
+use pnet::packet::PrimitiveValues;
+use pnet_macros_support::types::*;
+
+// TODO: consider changing some of the types in NetFlowPacket from
+// primitives to struct if it seems more ergonomic
+#[packet]
+pub struct NetFlowPacket {
+    
+    #[construct_with(u16)]
+    pub version: Version,
+
+    #[construct_with(u16)]
+    pub count: u16be,
+
+    #[construct_with(u32)]
+    pub sys_uptime: u32be, 
+
+    #[construct_with(u32)]
+    pub unix_seconds: u32be,
+    
+    #[construct_with(u32)]
+    pub sequence: u32be,
+
+    #[construct_with(u32)]
+    pub source_id: u32be,
+
+    #[payload]
+    pub payload: Vec<u8>,
+
+}
+
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Version(u16);
+
+impl Version {
+    fn new(val: u16) -> Version {
+        Version(val)
+    }
+}
+
+impl PrimitiveValues for Version {
+    type T = (u16,);
+
+    fn to_primitive_values(&self) -> (u16,) {
+        (self.0,)
+    }
+}
+
+impl Display for Version {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(
+            f,
+            "{}",
+            match self.0 {
+                0x0005 => "NetFlow_v5",
+                0x0009 => "NetFlow_v9",
+                _ => "unknown"
+            }
+        )
+    }
+}
